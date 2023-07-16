@@ -56,6 +56,27 @@ std::string decompressData(const std::string& compressedData, int codeLength)
     return decompressedData;
 }
 
+float calculateEntropy(const std::string& data) {
+    std::unordered_map<char, int> charCount;
+
+    // Conta a ocorrência de cada caractere
+    for (char c : data) {
+        charCount[c]++;
+    }
+
+    // Calcula a entropia
+    float entropy = 0.0;
+    int dataSize = data.size();
+
+    for (const auto& pair : charCount) {
+        float probability = static_cast<float>(pair.second) / dataSize;
+        entropy -= probability * std::log2(probability);
+    }
+
+    return entropy;
+}
+
+
 int main(int argc, char* argv[])
 {   
     
@@ -75,8 +96,9 @@ int main(int argc, char* argv[])
         return 1;
     }
     closedir(dir);
-    std::unordered_map<std::string, float> myDict;
-
+    std::unordered_map<std::string, float> myDictRatios;
+    std::unordered_map<std::string, float> myDictSizes;
+    std::unordered_map<std::string, float> myDictEntropy;
     // Itera novamente pelos arquivos na pasta de entrada para realizar a compressão e descompressão
     dir = opendir(inputFolderPath.c_str());
     while ((entry = readdir(dir)) != nullptr) {
@@ -96,13 +118,19 @@ int main(int argc, char* argv[])
             auto end = std::chrono::high_resolution_clock::now();
 
             // Calcular a duração em segundos
+            float entropy = calculateEntropy(compressedData);
+
+            // Calcular a duração em segundos
             std::chrono::duration<double> duration = end - start;
+            myDictRatios[inputFolderPath + entry->d_name] = ((compressedData.size() / 8.0) / data.size()) * 100;
+            myDictSizes[inputFolderPath + entry->d_name] = compressedData.size();
+            myDictEntropy[inputFolderPath + entry->d_name] = entropy;
             double seconds = duration.count();
             
             // Imprimir o tempo de execução
             //std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
             //std::string decompressedData = decompressData(compressedData, codeLength);
-            myDict[inputFolderPath + entry->d_name] = (compressedData.size() / 8.0);
+            
             //std::cout << "Arquivo de entrada: " << inputFolderPath + entry->d_name << std::endl;
             //std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
             //std::cout << "Tamanho comprimido: " << compressedData.size() / 8 << " bytes" << std::endl;
@@ -111,8 +139,9 @@ int main(int argc, char* argv[])
         }
     }
     closedir(dir);
-    for (const auto& pair : myDict) {
-        std::cout << "file: " << pair.first << ", compression_size: " << pair.second << std::endl;
-    }
+   for (const auto& pair : myDictEntropy) {
+        std::cout << "file: " << pair.first << ", entropy: " << pair.second << std::endl;
+     }
+    
     return 0;
 }

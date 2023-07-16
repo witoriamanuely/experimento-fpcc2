@@ -167,3 +167,87 @@ file: resize/16384_progl_resize, compression_size: 11873.2
 file: resize/93695_trans_resize, compression_size: 76795.6
 file: resize/131072_obj2_resize, compression_size: 135913
 file: resize/11954_paper5_resize, compression_size: 7968.88
+Tempo de execução da Compressão: 0.00192315 segundos
+Tempo de execução da Compressão: 0.0914772 segundos
+Tempo de execução da Compressão: 0.0410656 segundos
+Tempo de execução da Compressão: 0.0205448 segundos
+Tempo de execução da Compressão: 0.00253661 segundos
+Tempo de execução da Compressão: 0.00775484 segundos
+Tempo de execução da Compressão: 0.0140017 segundos
+Tempo de execução da Compressão: 0.000582317 segundos
+Tempo de execução da Compressão: 0.000303814 segundos
+Tempo de execução da Compressão: 0.0163596 segundos
+Tempo de execução da Compressão: 0.116497 segundos
+Tempo de execução da Compressão: 0.00511337 segundos
+Tempo de execução da Compressão: 0.00606891 segundos
+Tempo de execução da Compressão: 0.00689452 segundos
+Tempo de execução da Compressão: 0.0123931 segundos
+Tempo de execução da Compressão: 0.161206 segundos
+Tempo de execução da Compressão: 0.0555379 segundos
+Tempo de execução da Compressão: 0.00972877 segundos
+Tempo de execução da Compressão: 0.0793446 segundos
+Tempo de execução da Compressão: 0.00127763 segundos
+Tempo de execução da Compressão: 0.000152605 segundos
+file: resize/524288_news_resize, entropy: 4.58922
+file: resize/65536_paper2_resize, entropy: 4.54196
+file: resize/82199_paper2_resize, entropy: 4.60143
+file: resize/1024_paper4_resize, entropy: 4.65886
+file: resize/38105_paper6_resize, entropy: 5.0095
+file: resize/8192_progp_resize, entropy: 4.88921
+file: resize/768771_book1_resize, entropy: 4.52715
+file: resize/377109_news_resize, entropy: 5.18963
+file: resize/610856_book2_resize, entropy: 4.79263
+file: resize/111261_bib_resize, entropy: 5.20068
+file: resize/4096_progc_resize, entropy: 5.32108
+file: resize/1048576_book1_resize, entropy: 4.15599
+file: resize/53161_paper1_resize, entropy: 4.98298
+file: resize/2048_obj1_resize, entropy: 3.53617
+file: resize/32768_paper6_resize, entropy: 4.81367
+file: resize/262144_obj2_resize, entropy: 6.04426
+file: resize/46526_paper3_resize, entropy: 4.6651
+file: resize/16384_progl_resize, entropy: 4.58701
+file: resize/93695_trans_resize, entropy: 5.53278
+file: resize/131072_obj2_resize, entropy: 6.33353
+file: resize/11954_paper5_resize, entropy: 4.93615
+Tempo de execução da Compressão: 0.00187325 segundos
+Tempo de execução da Compressão: 0.0930391 segundos
+Tempo de execução da Compressão: 0.0413547 segundos
+Tempo de execução da Compressão: 0.0208598 segundos
+Tempo de execução da Compressão: 0.00241849 segundos
+Tempo de execução da Compressão: 0.00820724 segundos
+Tempo de execução da Compressão: 0.0140518 segundos
+Tempo de execução da Compressão: 0.000618387 segundos
+Tempo de execução da Compressão: 0.000321563 segundos
+Tempo de execução da Compressão: 0.0167977 segundos
+Tempo de execução da Compressão: 0.117356 segundos
+Tempo de execução da Compressão: 0.00475817 segundos
+Tempo de execução da Compressão: 0.00575249 segundos
+Tempo de execução da Compressão: 0.00713758 segundos
+Tempo de execução da Compressão: 0.0125761 segundos
+Tempo de execução da Compressão: 0.163438 segundos
+Tempo de execução da Compressão: 0.0569135 segundos
+Tempo de execução da Compressão: 0.00977062 segundos
+Tempo de execução da Compressão: 0.0817771 segundos
+Tempo de execução da Compressão: 0.00127041 segundos
+Tempo de execução da Compressão: 0.000149453 segundos
+file: resize/524288_news_resize, entropy: 0.99436
+file: resize/65536_paper2_resize, entropy: 0.998086
+file: resize/82199_paper2_resize, entropy: 0.998156
+file: resize/1024_paper4_resize, entropy: 0.996906
+file: resize/38105_paper6_resize, entropy: 0.998973
+file: resize/8192_progp_resize, entropy: 0.999733
+file: resize/768771_book1_resize, entropy: 0.998238
+file: resize/377109_news_resize, entropy: 0.999031
+file: resize/610856_book2_resize, entropy: 0.998424
+file: resize/111261_bib_resize, entropy: 0.999801
+file: resize/4096_progc_resize, entropy: 0.999002
+file: resize/1048576_book1_resize, entropy: 0.992621
+file: resize/53161_paper1_resize, entropy: 0.999043
+file: resize/2048_obj1_resize, entropy: 0.987535
+file: resize/32768_paper6_resize, entropy: 0.997764
+file: resize/262144_obj2_resize, entropy: 0.994315
+file: resize/46526_paper3_resize, entropy: 0.99745
+file: resize/16384_progl_resize, entropy: 0.998826
+file: resize/93695_trans_resize, entropy: 0.997185
+file: resize/131072_obj2_resize, entropy: 0.995202
+file: resize/11954_paper5_resize, entropy: 0.99911
