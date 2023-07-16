@@ -182,18 +182,18 @@ int main(int argc, char* argv[])
             std::chrono::duration<double> duration = end - start;
             double seconds = duration.count();
             // Imprimir o tempo de execução
-            std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
+            //std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
             // Descomprimir os dados
             std::string decompressedData = decompressData(compressedData, root);
-            myDict[inputFolderPath + entry->d_name] = (compressedData.size() / 8.0) / data.size() * 100;
+            myDict[inputFolderPath + entry->d_name] = (compressedData.size() / 8.0) ;
             // Imprimir informações da compressão
-            printCompressionInfo(data, compressedData, inputFolderPath + entry->d_name);
+            //printCompressionInfo(data, compressedData, inputFolderPath + entry->d_name);
                 
         }
     }
     closedir(dir);
     for (const auto& pair : myDict) {
-        std::cout << "Chave: " << pair.first << ", Valor: " << pair.second << std::endl;
+        std::cout << "file: " << pair.first << ", compression_size: " << pair.second << std::endl;
     }
     
  return 0;

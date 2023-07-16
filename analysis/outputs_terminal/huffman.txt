@@ -1,0 +1,169 @@
+Tempo de execução da Compressão: 0.00174882 segundos
+Arquivo de entrada: resize/11954_paper5_resize
+Tamanho original: 11954 bytes
+Tamanho comprimido: 7968 bytes
+Tamanho descomprimido: 1494 bytes
+Taxa de compressão: 66.6628%
+Tempo de execução da Compressão: 0.091923 segundos
+Arquivo de entrada: resize/610856_book2_resize
+Tamanho original: 610856 bytes
+Tamanho comprimido: 392599 bytes
+Tamanho descomprimido: 76357 bytes
+Taxa de compressão: 64.2704%
+Tempo de execução da Compressão: 0.0442616 segundos
+Arquivo de entrada: resize/262144_obj2_resize
+Tamanho original: 262144 bytes
+Tamanho comprimido: 263807 bytes
+Tamanho descomprimido: 32768 bytes
+Taxa de compressão: 100.635%
+Tempo de execução da Compressão: 0.0201167 segundos
+Arquivo de entrada: resize/131072_obj2_resize
+Tamanho original: 131072 bytes
+Tamanho comprimido: 135912 bytes
+Tamanho descomprimido: 16384 bytes
+Taxa de compressão: 103.693%
+Tempo de execução da Compressão: 0.00241798 segundos
+Arquivo de entrada: resize/16384_progl_resize
+Tamanho original: 16384 bytes
+Tamanho comprimido: 11873 bytes
+Tamanho descomprimido: 2048 bytes
+Taxa de compressão: 72.4686%
+Tempo de execução da Compressão: 0.00828482 segundos
+Arquivo de entrada: resize/53161_paper1_resize
+Tamanho original: 53161 bytes
+Tamanho comprimido: 35780 bytes
+Tamanho descomprimido: 6645 bytes
+Taxa de compressão: 67.3054%
+Tempo de execução da Compressão: 0.0140479 segundos
+Arquivo de entrada: resize/93695_trans_resize
+Tamanho original: 93695 bytes
+Tamanho comprimido: 76795 bytes
+Tamanho descomprimido: 11711 bytes
+Taxa de compressão: 81.9634%
+Tempo de execução da Compressão: 0.000581761 segundos
+Arquivo de entrada: resize/4096_progc_resize
+Tamanho original: 4096 bytes
+Tamanho comprimido: 3135 bytes
+Tamanho descomprimido: 512 bytes
+Taxa de compressão: 76.5533%
+Tempo de execução da Compressão: 0.000313173 segundos
+Arquivo de entrada: resize/2048_obj1_resize
+Tamanho original: 2048 bytes
+Tamanho comprimido: 1598 bytes
+Tamanho descomprimido: 256 bytes
+Taxa de compressão: 78.0701%
+Tempo de execução da Compressão: 0.0165808 segundos
+Arquivo de entrada: resize/111261_bib_resize
+Tamanho original: 111261 bytes
+Tamanho comprimido: 82866 bytes
+Tamanho descomprimido: 13907 bytes
+Taxa de compressão: 74.4797%
+Tempo de execução da Compressão: 0.118609 segundos
+Arquivo de entrada: resize/768771_book1_resize
+Tamanho original: 768771 bytes
+Tamanho comprimido: 471894 bytes
+Tamanho descomprimido: 96096 bytes
+Taxa de compressão: 61.383%
+Tempo de execução da Compressão: 0.00468032 segundos
+Arquivo de entrada: resize/32768_paper6_resize
+Tamanho original: 32768 bytes
+Tamanho comprimido: 21422 bytes
+Tamanho descomprimido: 4096 bytes
+Taxa de compressão: 65.3748%
+Tempo de execução da Compressão: 0.00702034 segundos
+Arquivo de entrada: resize/38105_paper6_resize
+Tamanho original: 38105 bytes
+Tamanho comprimido: 26093 bytes
+Tamanho descomprimido: 4763 bytes
+Taxa de compressão: 68.4779%
+Tempo de execução da Compressão: 0.00697876 segundos
+Arquivo de entrada: resize/46526_paper3_resize
+Tamanho original: 46526 bytes
+Tamanho comprimido: 29321 bytes
+Tamanho descomprimido: 5815 bytes
+Taxa de compressão: 63.0207%
+Tempo de execução da Compressão: 0.0132241 segundos
+Arquivo de entrada: resize/82199_paper2_resize
+Tamanho original: 82199 bytes
+Tamanho comprimido: 51163 bytes
+Tamanho descomprimido: 10274 bytes
+Taxa de compressão: 62.2435%
+Tempo de execução da Compressão: 0.179358 segundos
+Arquivo de entrada: resize/1048576_book1_resize
+Tamanho original: 1048576 bytes
+Tamanho comprimido: 576821 bytes
+Tamanho descomprimido: 131072 bytes
+Taxa de compressão: 55.01%
+Tempo de execução da Compressão: 0.0567077 segundos
+Arquivo de entrada: resize/377109_news_resize
+Tamanho original: 377109 bytes
+Tamanho comprimido: 261447 bytes
+Tamanho descomprimido: 47138 bytes
+Taxa de compressão: 69.3293%
+Tempo de execução da Compressão: 0.00979409 segundos
+Arquivo de entrada: resize/65536_paper2_resize
+Tamanho original: 65536 bytes
+Tamanho comprimido: 40418 bytes
+Tamanho descomprimido: 8192 bytes
+Taxa de compressão: 61.673%
+Tempo de execução da Compressão: 0.0806862 segundos
+Arquivo de entrada: resize/524288_news_resize
+Tamanho original: 524288 bytes
+Tamanho comprimido: 316639 bytes
+Tamanho descomprimido: 65536 bytes
+Taxa de compressão: 60.3941%
+Tempo de execução da Compressão: 0.00125219 segundos
+Arquivo de entrada: resize/8192_progp_resize
+Tamanho original: 8192 bytes
+Tamanho comprimido: 5755 bytes
+Tamanho descomprimido: 1024 bytes
+Taxa de compressão: 70.2576%
+Tempo de execução da Compressão: 0.000149584 segundos
+Arquivo de entrada: resize/1024_paper4_resize
+Tamanho original: 1024 bytes
+Tamanho comprimido: 653 bytes
+Tamanho descomprimido: 128 bytes
+Taxa de compressão: 63.7695%
+file: resize/524288_news_resize, compressed_ratio: 60.3941
+file: resize/65536_paper2_resize, compressed_ratio: 61.673
+file: resize/82199_paper2_resize, compressed_ratio: 62.2435
+file: resize/1024_paper4_resize, compressed_ratio: 63.7695
+file: resize/38105_paper6_resize, compressed_ratio: 68.4779
+file: resize/8192_progp_resize, compressed_ratio: 70.2576
+file: resize/768771_book1_resize, compressed_ratio: 61.383
+file: resize/377109_news_resize, compressed_ratio: 69.3293
+file: resize/610856_book2_resize, compressed_ratio: 64.2704
+file: resize/111261_bib_resize, compressed_ratio: 74.4797
+file: resize/4096_progc_resize, compressed_ratio: 76.5533
+file: resize/1048576_book1_resize, compressed_ratio: 55.01
+file: resize/53161_paper1_resize, compressed_ratio: 67.3055
+file: resize/2048_obj1_resize, compressed_ratio: 78.0701
+file: resize/32768_paper6_resize, compressed_ratio: 65.3748
+file: resize/262144_obj2_resize, compressed_ratio: 100.635
+file: resize/46526_paper3_resize, compressed_ratio: 63.0207
+file: resize/16384_progl_resize, compressed_ratio: 72.4686
+file: resize/93695_trans_resize, compressed_ratio: 81.9634
+file: resize/131072_obj2_resize, compressed_ratio: 103.693
+file: resize/11954_paper5_resize, compressed_ratio: 66.6628
+
+file: resize/524288_news_resize, compression_size: 316639
+file: resize/65536_paper2_resize, compression_size: 40418
+file: resize/82199_paper2_resize, compression_size: 51163.5
+file: resize/1024_paper4_resize, compression_size: 653
+file: resize/38105_paper6_resize, compression_size: 26093.5
+file: resize/8192_progp_resize, compression_size: 5755.5
+file: resize/768771_book1_resize, compression_size: 471894
+file: resize/377109_news_resize, compression_size: 261447
+file: resize/610856_book2_resize, compression_size: 392599
+file: resize/111261_bib_resize, compression_size: 82866.9
+file: resize/4096_progc_resize, compression_size: 3135.62
+file: resize/1048576_book1_resize, compression_size: 576821
+file: resize/53161_paper1_resize, compression_size: 35780.2
+file: resize/2048_obj1_resize, compression_size: 1598.88
+file: resize/32768_paper6_resize, compression_size: 21422
+file: resize/262144_obj2_resize, compression_size: 263808
+file: resize/46526_paper3_resize, compression_size: 29321
+file: resize/16384_progl_resize, compression_size: 11873.2
+file: resize/93695_trans_resize, compression_size: 76795.6
+file: resize/131072_obj2_resize, compression_size: 135913
+file: resize/11954_paper5_resize, compression_size: 7968.88

@@ -184,17 +184,17 @@ int main(int argc, char* argv[])
             std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
             std::string decompressedData = decompressData(compressedData, root);
             
-            myDict[inputFolderPath + entry->d_name] = (compressedData.size() / 8.0) / data.size() * 100;
-            std::cout << "Arquivo de entrada: " << inputFolderPath + entry->d_name << std::endl;
+            myDict[inputFolderPath + entry->d_name] = (compressedData.size() / 8.0);
+            /*std::cout << "Arquivo de entrada: " << inputFolderPath + entry->d_name << std::endl;
             std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
             std::cout << "Tamanho comprimido: " << compressedData.size() / 8 << " bytes" << std::endl;
             std::cout << "Tamanho descomprimido: " << decompressedData.size() / 8 << " bytes" << std::endl;
-            std::cout << "Taxa de compressão: " << (compressedData.size() / 8.0) / data.size() * 100 << "%" << std::endl;
+            std::cout << "Taxa de compressão: " << ((compressedData.size() / 8.0) / data.size()) * 100 << "%" << std::endl;*/
         }
     }
     closedir(dir);
      for (const auto& pair : myDict) {
-        std::cout << "Chave: " << pair.first << ", Valor: " << pair.second << std::endl;
+        std::cout << "file: " << pair.first << ", compression_size: " << pair.second << std::endl;
     }
 
     return 0;

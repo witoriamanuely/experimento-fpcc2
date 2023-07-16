@@ -1,0 +1,364 @@
+program interval(input,output);
+{dataflow simulator for real interval arithmetic}
+
+const
+	IMem = 500; {number of instructions}
+	DMem = 200;  {number of interval variables allowed}
+	Par = 3;   {max number of paramters for an operator}
+	Maxexp = 10; Minexp = -9;
+	Maxinf =10000; Mininf =-10000; {Tied to values of Minman and Maxman}
+	Maxman = 9999; Minman = -9999; {cannot exceed sqrt(maxint)}
+	Splitman = 1000; {Smallest normalized mantisa}
+	Digits = 4; {number of digits in mantissa}
+
+type
+	Positive= 0..maxint;
+	State  = -1..99;  {Used for holding state of operator -1:done}
+	OpType = (print,pr,tr,soln,readr,halve,halves,linh,mult,add,intgr,
+less,leq,noteq,sqrr,minr,maxr,modu,absr,trig,expr,lb,ub,copy,stop); {!!}
+	Ptr    = 1..DMem;
+	Loc    = 1..IMem;
+	Loc0   = 0..IMem;
+	EdgeT  = (hout,lin,hin,lout); {Warning this order is important in}
+				      {predicates such as gtS,geS}
+	CardT  = (finite,infinite);
+	ExpT   = Minexp..Maxexp;
+	ManT   = Mininf..Maxinf; 
+	Pflag  = (PNull,PSoln,PTrace,PPrint);
+	Sreal  = record
+		    edge:EdgeT;
+		    cardinality:CardT;
+		    exp:ExpT; {exponent}
+		    mantissa:ManT;
+		 end;
+	Int    = record
+		    hi:Sreal;
+		    lo:Sreal;
+	 end;
+	Instr  = record
+		    Code:OpType;
+		    Pars: array[0..Par] of 0..DMem;
+		 end;
+	DataMem= record
+		    D        :array [Ptr] of Int;
+		    S        :array [Loc] of State;
+		    LastHalve:Loc;
+		    RHalve   :array [Loc] of real;
+		 end;
+	DataFlags=record
+		    PF	     :array [Ptr] of Pflag;
+		 end;
+var
+	Debug  : (none,activity,post,trace,dump);
+	Cut    : (once,all);
+	GlobalEnd,Verifiable:boolean;
+	HalveThreshold:real;
+	I      : array [Loc] of Instr; {Memory holding instructions}
+	End    : Loc; {last instruction in I}
+	ParN   : array [OpType] of -1..Par; {number of parameters for each 
+			opcode. -1 means no result}
+        ParIntersect : array [OpType] of boolean ;
+	DInit  : DataMem; {initial memory which is cleared and 
+				used in first call}
+	DF     : DataFlags; {hold flags for variables, e.g. print/trace}
+	MaxDMem:0..DMem;
+	Shift  : array[0..Digits] of 1..maxint;{array of constant multipliers}
+						{used for alignment etc.}
+	Dummy  :Positive;
+	{constant intervals and Sreals}
+	PlusInfS,MinusInfS,PlusSmallS,MinusSmallS,ZeroS,
+	PlusFiniteS,MinusFiniteS:Sreal;
+	Zero,All,AllFinite:Int;
+
+procedure deblank;
+var Ch:char;
+begin
+   while (not eof) and (input^ in [' ','	']) do read(Ch);
+end;
+
+procedure InitialOptions;
+
+#include '/user/profs/cleary/bin/options.i';
+
+   procedure Option;
+   begin
+      case Opt of
+      'a','A':Debug:=activity;
+      'd','D':Debug:=dump;
+      'h','H':HalveThreshold:=StringNum/100;
+      'n','N':Debug:=none;
+      'p','P':Debug:=post;
+      't','T':Debug:=trace;
+      'v','V':Verifiable:=true;
+      end;
+   end;
+
+begin
+   Debug:=trace;
+   Verifiable:=false;
+   HalveThreshold:=67/100;
+   Options;
+   writeln(Debug);
+   writeln('Verifiable:',Verifiable);
+   writeln('Halve threshold',HalveThreshold);
+end;{InitialOptions}
+
+procedure NormalizeUp(E,M:integer;var S:Sreal;var Closed:boolean);
+begin
+with S do
+begin
+   if M=0 then S:=ZeroS else
+   if M>0 then
+   begin
+      while M>=Maxinf do
+      begin 
+	 if M mod 10 > 0 then begin Closed:=false;M:=(M div 10)+1 end
+	 else M:=M div 10;
+	 E:=E+1;
+      end;
+	 
+      while M < Maxinf div 10 do
+      begin M:=M*10; E:=E-1; 
+      end;
+
+      if E > Maxexp then {overflow-set to infinity}
+      begin 
+	 S:=PlusInfS;
+	 Closed:=false;
+      end else
+      if E < Minexp then {underflow-set to smallest positive value}
+      begin 
+         S:=PlusSmallS;
+         Closed:=false;
+      end else
+      begin cardinality:=finite;exp:=E;mantissa:=M;
+      end;
+   end else	 
+   if M < 0 then
+   begin
+      while M <= Mininf do
+      begin 
+	 if M mod 10 < 0 then Closed:=false else
+	 if M mod 10 > 0 then halt;
+	 M:=M div 10;
+	 E:=E+1;
+      end;
+	 
+      while M > (Mininf div 10) do
+      begin M:=M*10; E:=E-1; 
+      end;
+
+      if E > Maxexp then {overflow-set to most negative value}
+      begin 
+         S:=MinusFiniteS;
+         Closed:=false;
+      end 
+      else
+      if E < Minexp then {underflow-set to zero}
+      begin
+         S:=ZeroS;
+         Closed:=false;
+      end else
+      begin
+         cardinality:=finite;exp:=E;mantissa:=M;
+      end;
+   end;
+end;
+end;{NormalizeUp}
+
+procedure NormalizeDn(E,M:integer;var S:Sreal;var Closed:boolean);
+begin
+with S do
+begin
+   if M=0 then S:=ZeroS else
+   if M>0 then
+   begin
+      while M >= Maxinf do
+      begin 
+	 if M mod 10 > 0 then Closed:=false else
+	 if M mod 10 < 0 then halt;
+	 M:=M div 10;
+	 E:=E+1;
+      end;
+	 
+      while (M < Maxinf div 10) do
+      begin M:=M*10; E:=E-1; 
+      end;
+
+      if E > Maxexp then {overflow-set to largest positive value}
+      begin 
+	 S:=PlusFiniteS;
+	 Closed:=false;
+      end else
+      if E < Minexp then {underflow-set to zero}
+      begin S:=ZeroS; Closed:=false;
+      end else
+      begin cardinality:=finite;exp:=E;mantissa:=M;
+      end;
+   end else	 
+   if M < 0 then
+   begin
+      while M <= Mininf do
+      begin 
+	 if M mod 10 < 0 then 
+	 begin Closed:=false; M:=M div 10 -1;end
+	 else 
+	 if M mod 10 = 0 then M:=M div 10 
+	 else halt;
+	 E:=E+1;
+      end;
+	 
+      while (M>Mininf div 10) do
+      begin M:=M*10; E:=E-1; 
+      end;
+
+      if E > Maxexp then {overflow}
+      begin 
+         S:=MinusInfS;
+         Closed:=false;
+      end 
+      else
+      if E < Minexp then {underflow}
+      begin S:=MinusSmallS; Closed:=false;
+      end else
+      begin
+         cardinality:=finite;exp:=E;mantissa:=M;
+      end;
+   end;
+end;
+end;{NormalizeDn}
+
+procedure WriteS(X:Sreal);
+var E,M:integer;
+begin
+with X do
+begin
+   case edge of
+   lin: write('[');
+   lout: write('(');
+   hin,hout:
+   end;
+   
+   case cardinality of
+   infinite: write('inf':Digits+4); 
+   finite: 
+      if mantissa = 0 then write(0:Digits+1,' ':3)
+      else begin
+         M:=mantissa;
+	 E:=exp; 
+         while (M mod 10 = 0) do
+	 begin M:=M div 10; E:=E+1;
+	 end;
+         write(M:Digits+1,'e',E-Digits:2);
+      end;
+   end;
+   
+   case edge of 
+   hin: write(']');
+   hout:write(')');
+   lin,lout:
+   end;
+end;
+end;{WriteS}
+
+procedure WriteInt(I:Int);
+begin
+   with I do begin WriteS(lo); write(','); WriteS(hi); end;
+end;{WriteInt}
+   
+procedure DumpS(X:Sreal);
+begin
+with X do
+   write(edge:4,cardinality:9,mantissa:7,exp:3);
+end;{DumpS}
+
+procedure DumpInt(I:Int);
+begin
+   with I do begin DumpS(lo); write(' || '); DumpS(hi); end;
+end;{DumpInt}
+   
+procedure ReadInt(var I:Int);
+
+var   Ch:char;
+      Cll,Clu:boolean;
+	
+   procedure ReadSUp(var X:Sreal; var Closed:boolean);
+   var E,M:integer;
+   begin
+      with X do
+      begin
+         deblank;
+         case input^ of
+         '~':begin X:=PlusInfS;read(Ch);
+	     end;
+         '-','+','0','1','2','3','4','5','6','7','8','9':
+	 begin
+	    cardinality:=finite;
+   	    read(M);
+	    read(E); E:=E+Digits;
+	    NormalizeUp(E,M,X,Closed);
+	 end;
+	 end;{case}
+      end;
+   end;{ReadSUp}
+
+   procedure ReadSDn(var X:Sreal; var Closed:boolean);
+   var E,M:integer;
+       Ch:char;
+   begin
+      with X do
+      begin
+         deblank;
+         case input^ of
+         '~':begin X:=MinusInfS;read(Ch);
+	     end;
+         '-','+','0','1','2','3','4','5','6','7','8','9':
+	 begin
+	    cardinality:=finite;
+   	    read(M);
+	    read(E); E:=E+Digits;
+	    NormalizeDn(E,M,X,Closed);
+	 end;
+	 end;{case}
+      end;
+   end;{ReadSDn}
+begin{ReadInt}
+   with I do 
+   begin 
+      deblank; read(Ch); 
+      case Ch of
+      '[':Cll:=true;
+      '(':Cll:=false;
+      end;
+      ReadSDn(lo,Cll);if Cll then lo.edge:=lin else lo.edge:=lout;
+      deblank;
+      read(Ch); assert(Ch=',');
+      Clu:=true;
+      ReadSUp(hi,Clu);
+      deblank;
+      read(Ch);
+      case Ch of
+      ']':if Clu then hi.edge:=hin else hi.edge:=hout;
+      ')':hi.edge:=hout;
+      end;
+   end;
+end;{ReadInt}
+   
+procedure DumpTables;
+var tL:Loc; tPar:0..Par; tOp:OpType;
+begin
+	for tOp := print to stop do
+	   writeln(tOp:6,ParN[tOp]:2);
+	writeln;
+
+	for tL := 1 to End do
+	with I[tL] do
+	begin
+	   write(Code:5);
+	   for tPar := 0 to Par do
+	      if Pars[tPar] <> 0 then write(Pars[tPar]:4);
+	   writeln;
+	end;
+	writeln('number of memory locations used:',MaxDMem:0);
+	writeln;
+end;{Dump

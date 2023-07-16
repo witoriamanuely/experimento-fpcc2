@@ -1,0 +1,499 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; form.l -- screen forms handler
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare
+  (specials t)
+  (macros t))
+
+(eval-when (compile)
+  (load 'utilities)
+  (load 'constants)
+  (load 'zone)
+  (load 'look)
+  (load 'font)
+  (load 'text)
+  (load 'text-edit))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						generic fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstruct
+  (field		; generic field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'generic-field)		; type = generic
+  (zone (make-zone))		; bounding zone
+  (properties (list nil))	; empty property list
+)
+
+(defvar field-properties	; list of expected field properties
+  '("field-properties"
+    fill-ground		(solid pattern)		; should we draw when highlit?
+    fill-colour		(x_colour x_pattern)	; what colour or pattern?
+    empty-ground 	(solid pattern)		; should we draw when unlit?
+    empty-colour	(x_colour x_pattern)	; what colour or pattern?
+    border-colour	(x_colour) ; should we draw border (and what colour?)
+   ))	; can use this as real plist for online documentation
+
+(defun draw-field (f)		; draw field from scratch
+  (apply (concat 'draw- (field-type f))	; construct draw function name
+	 (ncons f)))				; then call it
+
+(defun init-field (f)		; initialize a field
+  (apply (concat 'init- (field-type f))	; construct init function name
+	 (ncons f)))				; then call it
+
+(defun resize-field (f box)		; resize a field
+  (apply				; construct resize function name
+    (concat 'resize- (field-type f))
+    (list f box)))				; then call it
+
+(defun toggle-field (f)		; toggle a field
+  (apply (concat 'toggle- (field-type f)) ; construct toggle fcn name
+	 (ncons f)))				; then call it
+
+(defun check-field (f p)	; check if point is inside field excl.border
+  (cond ((point-in-box-interior p (zone-box (field-zone f)))
+	 (apply			; if so, construct check function name
+	   (concat 'check- (field-type f))
+	   (list f p)))		; then call it and return result
+	(t nil)))		; otherwise return nil
+
+(defun fill-field (f)		; fill the field interior, if defined
+  (let ((b (get (field-properties f) 'fill-ground))	; check if has one
+	(c (get (field-properties f) 'fill-colour)))
+       (cond ((eq b 'solid)	; solid background
+	      (cond (c (clear-zone-interior (field-zone f) c))
+		    (t (clear-zone-interior (field-zone f) W-CONTRAST))))
+	     ((eq b 'pattern)	; patterned background
+	      (cond (c (pattern-zone-interior (field-zone f) c))
+		    (t (pattern-zone-interior (field-zone f) W-PATTERN-1))))
+       )))			; no background at all!
+
+(defun empty-field (f)		; empty the field interior, if defined
+  (let ((b (get (field-properties f) 'empty-ground)) ; check if has one
+	(c (get (field-properties f) 'empty-colour)))
+       (cond ((eq b 'solid)	; solid background
+	      (cond (c (clear-zone-interior (field-zone f) c))
+		    (t (clear-zone-interior (field-zone f) W-BACKGROUND))))
+	     ((eq b 'pattern)	; patterned background
+	      (cond (c (pattern-zone-interior (field-zone f) c))
+		    (t (pattern-zone-interior (field-zone f) W-PATTERN-1))))
+       )))			; no background at all!
+
+(defun draw-field-background (f)	; just what it says
+  (let ((b (get (field-properties f) 'empty-ground)) ; check if has one
+	(c (get (field-properties f) 'empty-colour)))
+       (cond ((eq b 'solid)	; solid background
+	      (cond (c (clear-zone (field-zone f) c))
+		    (t (clear-zone (field-zone f) W-BACKGROUND))))
+	     ((eq b 'pattern)	; patterned background
+	      (cond (c (pattern-zone (field-zone f) c))
+		    (t (pattern-zone (field-zone f) W-PATTERN-1))))
+       )))			; no background at all!
+
+(defun draw-field-border (f)		; draw outline, if any
+  (let ((c (get (field-properties f) 'border-colour)))
+       (cond (c (draw-zone-outline (field-zone f) c)))
+  ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						aggregate fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstruct
+  (aggregate-field	; aggregate field = form
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'aggregate-field)		; type
+  (zone (make-zone))		; bounding zone
+  (properties (list nil))	; empty property list
+  subfields			; list of subfields
+  selection			; which subfield was last hit
+)
+  
+(defvar aggregate-field-properties
+  `("aggregate-field-properties"
+    = ,field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-aggregate-field (f)
+  (draw-field-background f)			; clear background, if any
+  (draw-field-border f)				; draw border, if any
+  (mapc 'draw-field (aggregate-field-subfields f)) ; draw subfields
+  (w-flush (window-w (zone-window (field-zone f)))) t) ; flush it out
+
+(defun init-aggregate-field (f)
+  (mapc 'init-field (aggregate-field-subfields f))
+  (alter-aggregate-field f selection nil) t)
+
+(defun resize-aggregate-field (f box)
+  (alter-zone (field-zone f) box box))
+
+(defun check-aggregate-field (f p)
+  (do ((subfields (aggregate-field-subfields f)	; go through subfields
+	 (cdr subfields))
+       (gotcha))
+      ((or (null subfields)				; stop when no more
+	   (setq gotcha (check-field (car subfields) p))) ; or when one is hit
+       (alter-aggregate-field f selection gotcha)	; remember which one
+       gotcha)))					; also return it
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						remote fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; A remote field is a field which activates another field when hit.
+;;; Usually the remote field has some functional significance!
+
+(defstruct
+  (remote-field		; remote field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'remote-field)		; type = remote
+  (zone (make-zone))		; bounding zone
+  (properties (list nil))	; empty plist
+  (target)			; the actual target field
+  (point)			; x,y coords to pretend to use
+)
+
+(defvar remote-field-properties
+  `("remote-field-properties"
+    = ,field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-remote-field (f) 't)	; nothing to draw
+
+(defun init-remote-field (f) 't)	; nothing to initialize
+
+(defun resize-remote-field (f box)
+  (alter-zone (field-zone f) box box))
+
+(defun check-remote-field (f p)
+  (check-field
+    (remote-field-target f)
+    (remote-field-point f)))		; return result of checking target
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						button fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstruct
+  (button-field		; button field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'button-field)		; type = button
+  (zone (make-zone))		; bounding zone
+  (properties
+    (list nil			; default properties
+	  'fill-ground 'solid
+	  'empty-ground 'solid
+	  'border-colour W-CONTRAST
+    ))
+  (value nil)			; value
+)
+
+(defvar button-field-properties
+  `("button-field-properties"
+    = ,field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-button-field (f)
+  (draw-field-border f)
+  (cond ((button-field-value f)
+	 (fill-field f))
+	(t (empty-field f))))
+
+(defun toggle-button-field (f)
+  (alter-button-field f value (not (button-field-value f)))
+  (clear-zone-interior (field-zone f) W-XOR))
+
+(defun init-button-field (f)
+  (alter-button-field f value nil))	; turn it off
+
+(defun resize-button-field (f box)
+  (alter-zone (field-zone f) box box))
+
+(defun check-button-field (f p)
+  (toggle-button-field f) f)	; if we get here it's a hit -> return self
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						radio-button fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Named for the buttons on radios in which only one is "in" at a time.
+
+(defstruct
+  (radio-button-field		; radio-button field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'radio-button-field)		; type = radio-button
+  (zone (make-zone))		; bounding zone
+  (properties (list nil))	; empty plist
+  (subfields nil)		; individual buttons
+  (selection nil)		; which one last hit
+)
+
+(defvar radio-button-field-properties
+  `("radio-button-field-properties"
+    = ,aggregate-field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-radio-button-field (f)
+  (draw-aggregate-field f))
+
+(defun init-radio-button-field (f)
+  (init-aggregate-field f))
+
+(defun resize-radio-button-field (f box)
+  (alter-zone (field-zone f) box box))
+
+(defun check-radio-button-field (f p)
+  (cond ((and (radio-button-field-selection f)	; if button previously sel'd
+	      (button-field-value
+		(radio-button-field-selection f))) ; and it has a value
+	 (toggle-field				; turn it off
+	   (radio-button-field-selection f))))
+  (check-aggregate-field f p)			; check individual buttons
+)		; this will turn back on if same one sel'd, and return it
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						text fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstruct
+  (text-field		; text field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'text-field)		; type = text
+  (zone (make-zone))		; bounding zone
+  (properties
+    (list nil
+	  'fill-ground 'solid
+	  'empty-ground 'solid
+	  'border-colour W-CONTRAST
+	  'x-offset 5		; offset from left
+    ))
+  (value nil)
+  (text '||)			; text of text
+)
+
+(defvar text-field-properties
+  `("text-field-properties"
+    x-offset (x_pixels)		; text offset from box ll, otherwise centred
+    y-offset (x_pixels)		; text offset from box ll, otherwise centred
+    + ,button-field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-text-field (f)
+  (draw-button-field f)
+  (w-flush (window-w (zone-window (field-zone f)))) ; guarantee text on top
+  (draw-text (text-field-text f)))
+
+(defun redraw-text-field (f)
+  (empty-field f)
+  (w-flush (window-w (zone-window (field-zone f)))) ; guarantee text on top
+  (draw-text (text-field-text f)))
+
+(defun init-text-field (f)	; position & position the text in the field
+  (let ((s (text-field-text f))
+	(x-offset (get (field-properties f) 'x-offset))	; x offset from ll
+	(y-offset (get (field-properties f) 'y-offset))); y offset from ll
+       (alter-text s
+	 zone (make-zone			; ensure it has a zone
+		window (zone-window (field-zone f))
+		box (box-interior (zone-box (field-zone f)))))
+       (format-text s)		; ensure text delta calculated
+       (cond ((null x-offset)		; x-offset specified?
+	      (setq x-offset		; nope! centre it left-right
+		    (/ (- (x (box-size (zone-box (field-zone f))))
+			  (x (text-delta s)))
+		       2))))
+       (cond ((null y-offset)		; y-offset specified?
+	      (setq y-offset		; nope! centre it up-down
+		    (/ (- (y (box-size (zone-box (field-zone f))))
+			  (font-x-height (look-font (text-look s))))
+		       2))))
+       (alter-text s			; now position the text
+	 offset (make-point x x-offset y y-offset))
+       ))
+
+(defun resize-text-field (f box)	; position the text in the field
+  (alter-zone (field-zone f) box box)
+  (init-text-field f))
+
+(defun check-text-field (f p)
+  (input-text-field f) f)	; if we get here it's a hit -> return self
+
+(defun input-text-field (f)
+  (alter-text (text-field-text f)
+    text '|| nn 0 kr 0 kl 0 delta (make-point x 0 y 0))
+  (draw-text-field f)
+  (edit-text-field f (ll (zone-box (text-zone (text-field-text f))))))
+
+(defun edit-text-field (f p)		; edit in middle of text field
+  (edit-text (text-field-text f) p)	; edit the text
+  (draw-field f))			; redraw
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						prompt fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstruct
+  (prompt-field		; prompt field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'prompt-field)		; type = prompt
+  (zone (make-zone))		; bounding zone
+  (properties
+    (list nil 'x-offset 0))	; put it exactly where spec indicates.
+  (value nil)
+  (text '||)			; text of prompt
+)
+
+(defvar prompt-field-properties
+  `("prompt-field-properties"
+    = ,text-field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-prompt-field (f)
+  (draw-text-field f))
+
+(defun init-prompt-field (f)
+  (init-text-field f))
+
+(defun resize-prompt-field (f box)	; position the text in the field
+  (resize-text-field f box))
+
+(defun check-prompt-field (f p) f) ; just return self
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						text-button fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; A text-button is a button tied to a text.
+;;; When the button is pressed, the text is input from the keyboard.
+;;; Zone could same as either the button (activation by button only)
+;;; or include both button & text (should then be adjacent)
+
+(defstruct
+  (text-button-field		; text-button field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'text-button-field)		; type = text-button
+  (zone (make-zone))		; bounding zone
+  (properties (list nil))	; empty plist
+  (button)			; button subfield
+  (text)			; text subfield
+)
+
+(defvar text-button-field-properties
+  `("text-button-field-properties"
+    = ,field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-text-button-field (f)
+  (draw-field (text-button-field-button f))
+  (draw-text-field (text-button-field-text f)))
+
+(defun init-text-button-field (f)
+  (init-field (text-button-field-button f))
+  (init-text-field (text-button-field-text f)))
+
+(defun resize-text-button-field (f box)
+  (alter-zone (field-zone f) box box))
+
+(defun toggle-text-button-field (f)	; toggle only the button part
+  (cond ((button-field-value		; and only if non-nil
+	   (text-button-field-button f))
+	 (toggle-button-field (text-button-field-button f)))))
+
+(defun check-text-button-field (f p)
+  (cond ((check-field (text-button-field-button f) p)
+	 (input-text-field			; input from scratch
+	   (text-button-field-text f)))	; get the data
+	(t (toggle-button-field			; must be pointing at text
+	     (text-button-field-button f))	; toggle only the button part
+	   (edit-text-field
+	     (text-button-field-text f) p))	; edit the data
+  )
+  (toggle-button-field			; toggle button back
+    (text-button-field-button f))
+  (alter-button-field (text-button-field-button f)
+    value nil)			; keep aggregate from toggling again
+  f)					; return self
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						labelled button fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstruct
+  (labelled-button-field ; labelled button field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'labelled-button-field)	; type = labelled-button
+  (zone (make-zone))		; bounding zone
+  (properties
+    (list nil
+	  'fill-ground 'solid
+	  'empty-ground 'solid
+	  'border-colour W-CONTRAST
+    ))
+  (value nil)			; value
+  (text '||)			; label text
+)
+
+(defvar labelled-button-field-properties
+  `("labelled-button-field-properties"
+    = ,text-field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-labelled-button-field (f)
+  (draw-text-field f))
+
+(defun init-labelled-button-field (f)
+  (init-text-field f))
+
+(defun resize-labelled-button-field (f box)
+  (resize-text-field f box))
+
+(defun check-labelled-button-field (f p)
+  (toggle-button-field f) f)	; if we get here it's a hit -> return self
+
+(defun toggle-labelled-button-field (f)
+  (toggle-button-field f))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;						expanded-bitmap fields
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstruct
+  (expanded-bitmap-field	; expanded-bitmap field
+    (:displace t)
+    (:list)
+    (:conc-name))
+  (type 'expanded-bitmap-field)	; type = expanded-bitmap
+  (zone (make-zone))		; bounding zone
+  (properties (list nil))	; empty plist
+  (subfields nil)		; individual bits
+  (selection nil)		; which one last hit
+  (nrows 1)
+  (ncols 1)
+)
+
+(defvar expanded-bitmap-field-properties
+  `("expanded-bitmap-field-properties"
+    = ,aggregate-field-properties
+   ))	; can use this as real plist for online documentation
+
+(defun draw-expanded-bitmap-field (f)
+  (draw-aggregate-field f)

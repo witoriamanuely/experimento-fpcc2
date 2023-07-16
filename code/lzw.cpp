@@ -94,7 +94,8 @@ int main(int argc, char* argv[])
     }
     closedir(dir);
 
-
+    std::unordered_map<int, float> myDict;
+    std::unordered_map<std::string, float> myDictFileName;
     // Itera novamente pelos arquivos na pasta de entrada para realizar a compressão e descompressão
     dir = opendir(inputFolderPath.c_str());
     while ((entry = readdir(dir)) != nullptr) {
@@ -108,26 +109,31 @@ int main(int argc, char* argv[])
 
             std::string data((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
             auto start = std::chrono::high_resolution_clock::now();
+            std::cout << "Arquivo de entrada: " << inputFolderPath + entry->d_name << std::endl;
+            std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
             // Comprimir os dados
             std::string compressedData = compressData(data);
             auto end = std::chrono::high_resolution_clock::now();
 
             // Calcular a duração em segundos
             std::chrono::duration<double> duration = end - start;
+            myDictFileName[inputFolderPath + entry->d_name] = compressedData.size();
             double seconds = duration.count();
             // Imprimir o tempo de execução
-            std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
+            //std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
             //std::string decompressedData = decompressData(compressedData);
             float value = (static_cast<float>((compressedData.size())/ data.size())) * 100;
 
-            std::cout << "Arquivo de entrada: " << inputFolderPath + entry->d_name << std::endl;
-            std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
-            std::cout << "Tamanho comprimido: " << compressedData.size() << " bytes" << std::endl;
+            
+            //std::cout << "Tamanho comprimido: " << compressedData.size() << " bytes" << std::endl;
             //std::cout << "Tamanho descomprimido: " << decompressedData.size() / 8 << " bytes" << std::endl;
-            std::cout << "Taxa de compressão: " << value << "%" << std::endl;
+            //std::cout << "Taxa de compressão: " << value << "%" << std::endl;
         }
     }
     closedir(dir);
-
+     for (const auto& pair : myDictFileName) {
+        std::cout << "file: " << pair.first << ", compression_size: " << pair.second << std::endl;
+     }
+    
     return 0;
 }
