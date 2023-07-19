@@ -1,4 +1,6 @@
 .DS_Store
 a.out
 code/*.out
-code/analysis/.ipynb_checkpoints/
+analysis/.ipynb_checkpoints/
+code/liteme/
+
