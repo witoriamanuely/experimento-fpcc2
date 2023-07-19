@@ -1,6 +1,7 @@
 .DS_Store
 a.out
 code/*.out
-analysis/.ipynb_checkpoints/
-code/liteme/
-
+analysis/.ipynb_checkpoints
+code/liteme
+code/_pycache_
+.vscode/
