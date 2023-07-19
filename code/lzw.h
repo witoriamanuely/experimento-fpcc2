@@ -8,7 +8,7 @@
 #define LZW_H
 
 std::unordered_map<std::string, int> initializeDictionary();
-std::string compressData(const std::string& data);
-std::string decompressData(const std::string& compressedData);
+std::string compressDataLZW(const std::string& data);
+std::string decompressDataLZW(const std::string& compressedData);
 std::string buildCompressLZW(std::string& data);
 #endif

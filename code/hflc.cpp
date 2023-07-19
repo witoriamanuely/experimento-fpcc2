@@ -29,7 +29,7 @@ struct Compare {
 };
 
 // Função para criar a árvore de Huffman
-HuffmanNode* buildHuffmanTree(const std::unordered_map<char, int>& frequencies)
+HuffmanNode* buildHuffmanTreeHFLC(const std::unordered_map<char, int>& frequencies)
 {
     std::priority_queue<HuffmanNode*, std::vector<HuffmanNode*>, Compare> pq;
 
@@ -57,7 +57,7 @@ HuffmanNode* buildHuffmanTree(const std::unordered_map<char, int>& frequencies)
 }
 
 // Função auxiliar para construir a tabela de códigos de Huffman
-void buildHuffmanCodes(HuffmanNode* root, std::string code, std::unordered_map<char, std::string>& huffmanCodes)
+void buildHuffmanCodesHFLC(HuffmanNode* root, std::string code, std::unordered_map<char, std::string>& huffmanCodes)
 {
     if (root == nullptr) {
         return;
@@ -69,12 +69,12 @@ void buildHuffmanCodes(HuffmanNode* root, std::string code, std::unordered_map<c
     }
 
     // Percorre a árvore recursivamente
-    buildHuffmanCodes(root->left, code + "0", huffmanCodes);
-    buildHuffmanCodes(root->right, code + "1", huffmanCodes);
+    buildHuffmanCodesHFLC(root->left, code + "0", huffmanCodes);
+    buildHuffmanCodesHFLC(root->right, code + "1", huffmanCodes);
 }
 
 // Função para comprimir dados usando a tabela de códigos de Huffman
-std::string compressData(const std::string& data, const std::unordered_map<char, std::string>& huffmanCodes)
+std::string compressDataHFLC(const std::string& data, const std::unordered_map<char, std::string>& huffmanCodes)
 {
     std::string compressedData;
 
@@ -87,7 +87,7 @@ std::string compressData(const std::string& data, const std::unordered_map<char,
 }
 
 // Função para descomprimir dados usando a árvore de Huffman
-std::string decompressData(const std::string& compressedData, HuffmanNode* root)
+std::string decompressDataHFLC(const std::string& compressedData, HuffmanNode* root)
 {
     std::string decompressedData;
     HuffmanNode* currentNode = root;
@@ -110,42 +110,6 @@ std::string decompressData(const std::string& compressedData, HuffmanNode* root)
     return decompressedData;
 }
 
-// Função para imprimir as informações da compressão
-void printCompressionInfo(const std::string& data, const std::string& compressedData, const std::string& file)
-{   
-    std::cout << "Arquivo: " << file << std::endl;
-    std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
-    std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
-    std::cout << "Tamanho comprimido: " << compressedData.size() / 8 << " bytes" << std::endl;
-    std::cout << "Taxa de compressão: " << (compressedData.size() / 8.0) / data.size() * 100 << "%" << std::endl;
-}
-
-// Função para imprimir as informações da descompressão
-void printDecompressionInfo(const std::string& compressedData, const std::string& decompressedData)
-{
-    std::cout << "Dados comprimidos: " << compressedData << std::endl;
-    std::cout << "Dados descomprimidos: " << decompressedData << std::endl;
-    std::cout << "Tamanho descomprimido: " << decompressedData.size() << " bytes" << std::endl;
-}
-float calculateEntropy(const std::string& data) {
-    std::unordered_map<char, int> charCount;
-
-    // Conta a ocorrência de cada caractere
-    for (char c : data) {
-        charCount[c]++;
-    }
-
-    // Calcula a entropia
-    float entropy = 0.0;
-    int dataSize = data.size();
-
-    for (const auto& pair : charCount) {
-        float probability = static_cast<float>(pair.second) / dataSize;
-        entropy -= probability * std::log2(probability);
-    }
-
-    return entropy;
-}
 
 std::string buildCompressHFLC(std::string& data){
     int codeLength = 4;
@@ -154,10 +118,10 @@ std::string buildCompressHFLC(std::string& data){
             frequencies[c]++;
         }
 
-    HuffmanNode* root = buildHuffmanTree(frequencies);
+    HuffmanNode* root = buildHuffmanTreeHFLC(frequencies);
     std::unordered_map<char, std::string> huffmanCodes;
-    buildHuffmanCodes(root, "", huffmanCodes);
-    std::string compressedData = compressData(data, huffmanCodes);
+    buildHuffmanCodesHFLC(root, "", huffmanCodes);
+    std::string compressedData = compressDataHFLC(data, huffmanCodes);
     
     return compressedData;
 }

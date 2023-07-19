@@ -13,8 +13,8 @@ struct HuffmanNode;
 struct Compare;
 HuffmanNode* buildHuffmanTree(const std::unordered_map<char, int>& frequencies);
 void buildHuffmanCodes(HuffmanNode* root, std::string code, std::unordered_map<char, std::string>& huffmanCodes);
-std::string decompressData(const std::string& compressedData, HuffmanNode* root);
-std::string compressData(const std::string& data, const std::unordered_map<char, std::string>& huffmanCodes);
+std::string decompressDataHuffman(const std::string& compressedData, HuffmanNode* root);
+std::string compressDataHuffman(const std::string& data, const std::unordered_map<char, std::string>& huffmanCodes);
 std::string buildCompressHuffman(std::string& data);
 
 #endif

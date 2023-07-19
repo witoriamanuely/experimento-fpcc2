@@ -72,7 +72,7 @@ void buildHuffmanCodes(HuffmanNode* root, std::string code, std::unordered_map<c
 }
 
 // Função para comprimir dados usando a tabela de códigos de Huffman
-std::string compressData(const std::string& data, const std::unordered_map<char, std::string>& huffmanCodes)
+std::string compressDataHuffman(const std::string& data, const std::unordered_map<char, std::string>& huffmanCodes)
 {
     std::string compressedData;
 
@@ -85,7 +85,7 @@ std::string compressData(const std::string& data, const std::unordered_map<char,
 }
 
 // Função para descomprimir dados usando a árvore de Huffman
-std::string decompressData(const std::string& compressedData, HuffmanNode* root)
+std::string decompressDataHuffman(const std::string& compressedData, HuffmanNode* root)
 {
     std::string decompressedData;
     HuffmanNode* currentNode = root;
@@ -108,26 +108,6 @@ std::string decompressData(const std::string& compressedData, HuffmanNode* root)
     return decompressedData;
 }
 
-float calculateEntropy(const std::string& data) {
-    std::unordered_map<char, int> charCount;
-
-    // Conta a ocorrência de cada caractere
-    for (char c : data) {
-        charCount[c]++;
-    }
-
-    // Calcula a entropia
-    float entropy = 0.0;
-    int dataSize = data.size();
-
-    for (const auto& pair : charCount) {
-        float probability = static_cast<float>(pair.second) / dataSize;
-        entropy -= probability * std::log2(probability);
-    }
-
-    return entropy;
-}
-
 std::string buildCompressHuffman(std::string& data){
 
 
@@ -138,17 +118,8 @@ std::string buildCompressHuffman(std::string& data){
     HuffmanNode* root = buildHuffmanTree(frequencies);
     std::unordered_map<char, std::string> huffmanCodes;
     buildHuffmanCodes(root, "", huffmanCodes);
-    std::string compressedData = compressData(data, huffmanCodes);
+    std::string compressedData = compressDataHuffman(data, huffmanCodes);
     return compressedData;
      
 }
 
-int main(int argc, char* argv[])
-{   
-
-    
-    
-        
-
-    return 0;
-}

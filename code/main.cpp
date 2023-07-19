@@ -47,11 +47,12 @@ void printCompressionInfo(const std::string& data, const std::string& compressed
 
 void printCompressionInfoLZW(const std::string& data, const std::string& compressedData, const std::string& file,double seconds, const std::string& tecnica)
 {   
+    double compressedValue = static_cast<double>(compressedData.size()) / data.size();
     std::cout << "Técnica: " << tecnica << std::endl;
     std::cout << "Arquivo: " << file << std::endl;
     std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
-    std::cout << "Tamanho comprimido: " << compressedData.size() / 8 << " bytes" << std::endl;
-    std::cout << "Taxa de compressão: " << (compressedData.size() / data.size() )* 100 << "%" << std::endl;
+    std::cout << "Tamanho comprimido: " << compressedData.size() << " bytes" << std::endl;
+    std::cout << "Taxa de compressão: " << compressedValue * 100 << "%" << std::endl;
     std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
 }
 
@@ -93,23 +94,23 @@ int main(int argc, char* argv[])
             auto startLZW = std::chrono::high_resolution_clock::now();
             std::string compressedDataLZW =  buildCompressLZW(data);
             auto endLZW = std::chrono::high_resolution_clock::now();
-            auto durationLZW = std::chrono::duration_cast<std::chrono::duration<double>>(endLZW - startLZW);
+            auto durationLZW = std::chrono::duration_cast<std::chrono::duration<double> >(endLZW - startLZW);
 
             auto startFLC = std::chrono::high_resolution_clock::now();
             std::string compressedDataFLC =  buildCompressFLC(data);
             auto endFLC = std::chrono::high_resolution_clock::now();
-            auto durationFLC = std::chrono::duration_cast<std::chrono::duration<double>>(endFLC - startFLC);
+            auto durationFLC = std::chrono::duration_cast<std::chrono::duration<double> >(endFLC - startFLC);
 
 
             auto startHFLC = std::chrono::high_resolution_clock::now();
             std::string compressedDataHFLC=  buildCompressHFLC(data);
             auto endHFLC = std::chrono::high_resolution_clock::now();
-            auto durationHFLC = std::chrono::duration_cast<std::chrono::duration<double>>(endHFLC - startHFLC);
+            auto durationHFLC = std::chrono::duration_cast<std::chrono::duration<double> >(endHFLC - startHFLC);
 
             auto startHuffman = std::chrono::high_resolution_clock::now();
             std::string compressedDataHuffman =  buildCompressHuffman(data);
             auto endHuffman = std::chrono::high_resolution_clock::now();
-            auto durationHuffman = std::chrono::duration_cast<std::chrono::duration<double>>(endHuffman - startHuffman);
+            auto durationHuffman = std::chrono::duration_cast<std::chrono::duration<double> >(endHuffman - startHuffman);
 
 
             printCompressionInfoLZW(data, compressedDataLZW, inputFolderPath + entry->d_name, durationLZW.count(), "LZW");

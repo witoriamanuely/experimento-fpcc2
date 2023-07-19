@@ -18,7 +18,7 @@ std::unordered_map<std::string, int> initializeDictionary()
 }
 
 // Função para comprimir dados usando o algoritmo LZW
-std::string compressData(const std::string& data)
+std::string compressDataLZW(const std::string& data)
 {
     std::unordered_map<std::string, int> dictionary = initializeDictionary();
     std::string currentSymbol;
@@ -45,7 +45,7 @@ std::string compressData(const std::string& data)
 }
 
 // Função para descomprimir dados usando o algoritmo LZW
-std::string decompressData(const std::string& compressedData)
+std::string decompressDataLZW(const std::string& compressedData)
 {
     std::unordered_map<int, std::string> dictionary;
     for (int i = 0; i < 256; ++i) {
@@ -75,29 +75,8 @@ std::string decompressData(const std::string& compressedData)
     return decompressedData;
 }
 
-float calculateEntropy(const std::string& data) {
-    std::unordered_map<char, int> charCount;
-
-    // Conta a ocorrência de cada caractere
-    for (char c : data) {
-        charCount[c]++;
-    }
-
-    // Calcula a entropia
-    float entropy = 0.0;
-    int dataSize = data.size();
-
-    for (const auto& pair : charCount) {
-        float probability = static_cast<float>(pair.second) / dataSize;
-        entropy -= probability * std::log2(probability);
-    }
-
-    return entropy;
-}
-
-
 std::string buildCompressLZW(std::string& data){
-    std::string compressedData = compressData(data);
+    std::string compressedData = compressDataLZW(data);
     return compressedData;
 }
 
