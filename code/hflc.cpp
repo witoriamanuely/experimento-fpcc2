@@ -7,6 +7,7 @@
 #include <bitset>
 #include <dirent.h>
 #include <chrono>
+#include "hflc.h"
 
 // Estrutura de um nó da árvore de Huffman
 struct HuffmanNode {
@@ -146,85 +147,18 @@ float calculateEntropy(const std::string& data) {
     return entropy;
 }
 
-int main(int argc, char* argv[])
-{   
-
-    
-     // Pasta com os arquivos de entrada
-    std::string inputFolderPath = "calgarycorpus/";
-    if (argc > 1){
-        inputFolderPath = argv[1];
-    }
+std::string buildCompressHFLC(std::string& data){
     int codeLength = 4;
-    // Verifica se a pasta existe
-    DIR* dir = opendir(inputFolderPath.c_str());
-    struct dirent* entry;
-    if (dir == nullptr) {
-        std::cerr << "A pasta de entrada não existe ou não é um diretório válido." << std::endl;
-        return 1;
-    }
-
-
-    // Itera novamente pelos arquivos na pasta de entrada para realizar a compressão e descompressão
-    std::unordered_map<std::string, float> myDictRatios;
-    std::unordered_map<std::string, float> myDictSizes;
-    std::unordered_map<std::string, float> myDictEntropy;
-
-    dir = opendir(inputFolderPath.c_str());
-    while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_type == DT_REG) {
-            // Ler o conteúdo do arquivo
-            std::ifstream inFile(inputFolderPath + entry->d_name);
-            if (!inFile) {
-                std::cerr << "Erro ao abrir o arquivo de entrada: " << entry->d_name << std::endl;
-                continue;
-            }
-
-
-            std::string data((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
-             // Frequência dos caracteres
-            std::unordered_map<char, int> frequencies;
-            auto start = std::chrono::high_resolution_clock::now();
-            // Calcular a frequência dos caracteres
-            for (char c : data) {
-                frequencies[c]++;
-            }
-
-            // Construir a árvore de Huffman
-            HuffmanNode* root = buildHuffmanTree(frequencies);
-
-            // Construir a tabela de códigos de Huffman
-            std::unordered_map<char, std::string> huffmanCodes;
-            buildHuffmanCodes(root, "", huffmanCodes);
-             // Comprimir os dados
-            std::string compressedData = compressData(data, huffmanCodes);
-            auto end = std::chrono::high_resolution_clock::now();
-
-            // Calcular a duração em segundos
-             // Calcular a duração em segundos
-            float entropy = calculateEntropy(compressedData);
-
-            // Calcular a duração em segundos
-            std::chrono::duration<double> duration = end - start;
-            myDictRatios[inputFolderPath + entry->d_name] = ((compressedData.size() / 8.0) / data.size()) * 100;
-            myDictSizes[inputFolderPath + entry->d_name] = compressedData.size();
-            myDictEntropy[inputFolderPath + entry->d_name] = entropy;
-            double seconds = duration.count();
-            // Imprimir o tempo de execução
-            //std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
-            // Descomprimir os dados
-            //std::string decompressedData = decompressData(compressedData, root);
-           
-            // Imprimir informações da compressão
-            //printCompressionInfo(data, compressedData, inputFolderPath + entry->d_name);
-                
+     std::unordered_map<char, int> frequencies;
+    for (char c : data) {
+            frequencies[c]++;
         }
-    }
-    closedir(dir);
-  for (const auto& pair : myDictEntropy) {
-        std::cout << "file: " << pair.first << ", entropy: " << pair.second << std::endl;
-     }
+
+    HuffmanNode* root = buildHuffmanTree(frequencies);
+    std::unordered_map<char, std::string> huffmanCodes;
+    buildHuffmanCodes(root, "", huffmanCodes);
+    std::string compressedData = compressData(data, huffmanCodes);
     
-    
- return 0;
+    return compressedData;
 }
+

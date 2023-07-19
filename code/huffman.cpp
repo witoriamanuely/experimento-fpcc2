@@ -5,6 +5,7 @@
 #include <string>
 #include <dirent.h>
 #include <chrono>
+#include "huffman.h"
 
 // Estrutura de um nó da árvore de Huffman
 struct HuffmanNode {
@@ -127,107 +128,27 @@ float calculateEntropy(const std::string& data) {
     return entropy;
 }
 
+std::string buildCompressHuffman(std::string& data){
+
+
+    std::unordered_map<char, int> frequencies;
+    for (char c : data) {
+        frequencies[c]++;
+    }
+    HuffmanNode* root = buildHuffmanTree(frequencies);
+    std::unordered_map<char, std::string> huffmanCodes;
+    buildHuffmanCodes(root, "", huffmanCodes);
+    std::string compressedData = compressData(data, huffmanCodes);
+    return compressedData;
+     
+}
 
 int main(int argc, char* argv[])
 {   
 
     
-
-     // Pasta com os arquivos de entrada
-    std::string inputFolderPath = "calgarycorpus/";
-    if (argc > 1){
-        inputFolderPath = argv[1];
-    }
-    // Verifica se a pasta existe
-    DIR* dir = opendir(inputFolderPath.c_str());
-    if (dir == nullptr) {
-        std::cerr << "A pasta de entrada não existe ou não é um diretório válido." << std::endl;
-        return 1;
-    }
-    closedir(dir);
-
-    // Frequência dos caracteres
-    std::unordered_map<char, int> frequencies;
-
-    // Itera pelos arquivos na pasta de entrada
-    dir = opendir(inputFolderPath.c_str());
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_type == DT_REG) {
-            // Ler o conteúdo do arquivo
-            std::ifstream inFile(inputFolderPath + entry->d_name);
-            if (!inFile) {
-                std::cerr << "Erro ao abrir o arquivo de entrada: " << entry->d_name << std::endl;
-                continue;
-            }
-
-            std::string data((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
-
-            // Atualiza a frequência dos caracteres
-            for (char c : data) {
-                frequencies[c]++;
-            }
-
-            inFile.close();
-        }
-    }
-    closedir(dir);
-
-    // Construir a árvore de Huffman
-    HuffmanNode* root = buildHuffmanTree(frequencies);
-
-    // Construir a tabela de códigos de Huffman
-    std::unordered_map<char, std::string> huffmanCodes;
-    buildHuffmanCodes(root, "", huffmanCodes);
     
-    std::unordered_map<std::string, float> myDictRatios;
-    std::unordered_map<std::string, float> myDictSizes;
-    std::unordered_map<std::string, float> myDictEntropy;
-    // Itera novamente pelos arquivos na pasta de entrada para realizar a compressão e descompressão
-    dir = opendir(inputFolderPath.c_str());
-    while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_type == DT_REG) {
-            // Ler o conteúdo do arquivo
-            std::ifstream inFile(inputFolderPath + entry->d_name);
-            if (!inFile) {
-                std::cerr << "Erro ao abrir o arquivo de entrada: " << entry->d_name << std::endl;
-                continue;
-            }
-
-            std::string data((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
-            auto start = std::chrono::high_resolution_clock::now();
-            // Comprimir os dados
-            std::string compressedData = compressData(data, huffmanCodes);
-            auto end = std::chrono::high_resolution_clock::now();
-
-             // Calcular a duração em segundos
-            float entropy = calculateEntropy(compressedData);
-
-            // Calcular a duração em segundos
-            std::chrono::duration<double> duration = end - start;
-            myDictRatios[inputFolderPath + entry->d_name] = ((compressedData.size() / 8.0) / data.size()) * 100;
-            myDictSizes[inputFolderPath + entry->d_name] = compressedData.size();
-            myDictEntropy[inputFolderPath + entry->d_name] = entropy;
-            double seconds = duration.count();
-
-            // Imprimir o tempo de execução
-            std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
-            std::string decompressedData = decompressData(compressedData, root);
-            
-            
-            /*std::cout << "Arquivo de entrada: " << inputFolderPath + entry->d_name << std::endl;
-            std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
-            std::cout << "Tamanho comprimido: " << compressedData.size() / 8 << " bytes" << std::endl;
-            std::cout << "Tamanho descomprimido: " << decompressedData.size() / 8 << " bytes" << std::endl;
-            std::cout << "Taxa de compressão: " << ((compressedData.size() / 8.0) / data.size()) * 100 << "%" << std::endl;*/
-        }
-    }
-    closedir(dir);
-    for (const auto& pair : myDictEntropy) {
-        std::cout << "file: " << pair.first << ", entropy: " << pair.second << std::endl;
         
-        }
-    
 
     return 0;
 }

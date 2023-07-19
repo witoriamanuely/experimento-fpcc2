@@ -5,6 +5,7 @@
 #include <bitset>
 #include <dirent.h>
 #include <chrono>
+#include "flc.h"
 
 // Função para comprimir dados usando Fixed-Length Code
 std::string compressData(const std::string& data, int codeLength)
@@ -76,72 +77,10 @@ float calculateEntropy(const std::string& data) {
     return entropy;
 }
 
-
-int main(int argc, char* argv[])
-{   
-    
-    // Pasta com os arquivos de entrada
-    std::string inputFolderPath = "calgarycorpus/";
-    if (argc > 1){
-        inputFolderPath = argv[1];
-    }
-
-
+std::string buildCompressFLC(std::string& data){
     int codeLength = 4;
-    // Verifica se a pasta existe
-    DIR* dir = opendir(inputFolderPath.c_str());
-    struct dirent* entry;
-    if (dir == nullptr) {
-        std::cerr << "A pasta de entrada não existe ou não é um diretório válido." << std::endl;
-        return 1;
-    }
-    closedir(dir);
-    std::unordered_map<std::string, float> myDictRatios;
-    std::unordered_map<std::string, float> myDictSizes;
-    std::unordered_map<std::string, float> myDictEntropy;
-    // Itera novamente pelos arquivos na pasta de entrada para realizar a compressão e descompressão
-    dir = opendir(inputFolderPath.c_str());
-    while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_type == DT_REG) {
-            // Ler o conteúdo do arquivo
-            std::ifstream inFile(inputFolderPath + entry->d_name);
-            if (!inFile) {
-                std::cerr << "Erro ao abrir o arquivo de entrada: " << entry->d_name << std::endl;
-                continue;
-            }
-
-            std::string data((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
-
-            auto start = std::chrono::high_resolution_clock::now();
-            // Comprimir os dados
-            std::string compressedData = compressData(data, codeLength);
-            auto end = std::chrono::high_resolution_clock::now();
-
-            // Calcular a duração em segundos
-            float entropy = calculateEntropy(compressedData);
-
-            // Calcular a duração em segundos
-            std::chrono::duration<double> duration = end - start;
-            myDictRatios[inputFolderPath + entry->d_name] = ((compressedData.size() / 8.0) / data.size()) * 100;
-            myDictSizes[inputFolderPath + entry->d_name] = compressedData.size();
-            myDictEntropy[inputFolderPath + entry->d_name] = entropy;
-            double seconds = duration.count();
-            
-            // Imprimir o tempo de execução
-            //std::cout << "Tempo de execução da Compressão: " << seconds << " segundos" << std::endl;
-            //std::string decompressedData = decompressData(compressedData, codeLength);
-            
-            //std::cout << "Arquivo de entrada: " << inputFolderPath + entry->d_name << std::endl;
-            //std::cout << "Tamanho original: " << data.size() << " bytes" << std::endl;
-            //std::cout << "Tamanho comprimido: " << compressedData.size() / 8 << " bytes" << std::endl;
-            //std::cout << "Tamanho descomprimido: " << decompressedData.size() / 8 << " bytes" << std::endl;
-            //std::cout << "Taxa de compressão: " <<((compressedData.size() / 8.0) / data.size()) * 100 << "%" << std::endl;
-        }
-    }
-    closedir(dir);
-   for (const auto& pair : myDictEntropy) {
-        std::cout << "file: " << pair.first << ", entropy: " << pair.second << std::endl;
-     }
-    
-    return 0;
+    std::string compressedData = compressData(data, codeLength);
+    return compressedData;
 }
+
+
